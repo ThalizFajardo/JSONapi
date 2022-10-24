@@ -9,6 +9,6 @@
     "id": 2,
     "title": "tarea 2",
     "description": "nueva tarea",
-    "status": false
+    "status": true
   }
 ]

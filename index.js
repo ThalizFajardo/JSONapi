@@ -1,41 +1,26 @@
-//Para usar el .gitignore
-//primero tines que inciar un repositorio
-
-// importar las librerias que vamos a usar
-// http, path, fs (leyendo archivos)
-
+//importando...
 const http = require("http");
 const path = require("path");
 const fs = require("fs/promises");
 const { writeFile } = require("fs");
+const { parse } = require("path");
 
 
-const PORT = 8000;
+const PORT = 8000;//localhost:8000
 
 const app = http.createServer(async (request, response) => {
-    const method = request.method;
-    const url = request.url;
+    const method = request.method;//=> devuelve el metodo de la peticion
+    const url = request.url;//=> devuelve la url de la peticion
 
-    const getById = async (id) => {
-        try {
-            id = parseInt(id);
-            const elements = await jsonFile;
-            return jsonFile.find(json => json.id === id);
-        } catch (error) {
-            console.log(error);
-        }
-        console.log(jsonFile);
-    }
-
-
+   
     if (url === "/tasks") {
-        const jsonPath = path.resolve("./data.json");
-        const jsonFile = await fs.readFile(jsonPath, "utf8");
+        const jsonPath = path.resolve("./data.json");//=> obteniendo ruta
+        const jsonFile = await fs.readFile(jsonPath, "utf8");//=>leyendo JSON..
 
 
         if (request.method === "GET") {
-            response.writeHead(200, { 'Content-Type': 'application/json' });
             response.write(jsonFile);
+            response.writeHead(200, { 'Content-Type': 'application/json' });
         }
 
         if (method === "POST") {
@@ -49,18 +34,33 @@ const app = http.createServer(async (request, response) => {
 
             response.writeHead(201, { 'Content-Type': 'application/json' });
         }
+        
         if (method === "PUT") {
-            request.on("data", (data) => {
-                const newTask = JSON.parse(data.toString());
-                // const arr = JSON.parse(jsonFile);
-                // arr.push(newTask);
-                //fs.writeFile(jsonPath, JSON.stringify(arr));
-                console.log(newTask);
+            request.on("data", async (data) => {
+                const toUpdate = JSON.parse(data);
+                const jsonObject = JSON.parse(jsonFile);
+                const JSONFilter = jsonObject.find(object => object.id === toUpdate.id);
+                JSONFilter.status = toUpdate.status
+                const filtered = JSON.stringify(jsonObject);
+                fs.writeFile(jsonPath, filtered);
             });
             response.writeHead(201, { 'Content-Type': 'application/json' });
         }
 
-
+        if (method === "DELETE") {
+            request.on("data", async (data) =>{
+                const toDelete = JSON.parse(data)
+                const jsonObject = JSON.parse(jsonFile)
+                const JSONFilter = jsonObject.filter( object => object.id !== toDelete.id )
+                console.log(JSONFilter);
+                const filtered = JSON.stringify(JSONFilter)
+                  fs.writeFile(jsonPath, filtered) 
+              })
+              response.writeHead(201, { 'Content-Type': 'application/json' });
+        }
+        else{
+            response.writeHead("503") ;
+        }
 
     }
 
